@@ -13,4 +13,15 @@ public class DepartmentService {
     public List<Department> findAll() {
         return dao.findAll();
     }
+    public void saveOrUpdate(Department obj){
+        if (obj.getName()==null){
+            throw new IllegalStateException("Invalid Name");
+        }
+        if(obj.getId() == null){
+            dao.insert(obj);
+        }else{
+            dao.update(obj);
+        }
+    }
+
 }
