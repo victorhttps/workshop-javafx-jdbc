@@ -1,5 +1,6 @@
 package gui;
 
+import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
 import gui.util.Utils;
 import javafx.collections.FXCollections;
@@ -26,7 +27,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class DepartmentListController implements Initializable {
+public class DepartmentListController implements Initializable, DataChangeListener {
 
     private DepartmentService service;
 
@@ -47,7 +48,9 @@ public class DepartmentListController implements Initializable {
     @FXML
     public void onBtNewAction(ActionEvent event) {
         Stage parentStage = Utils.currentStage(event);
-createDialogForm("/gui/DepartmentForm.fxml", parentStage);    }
+        Department obj = new Department();
+        createDialogForm(obj,"/gui/DepartmentForm.fxml", parentStage);
+    }
 
     public void setDepartmentService(DepartmentService service) {
         this.service = service;
@@ -78,10 +81,16 @@ createDialogForm("/gui/DepartmentForm.fxml", parentStage);    }
         tableViewDepartment.setItems(obsList);
     }
 
-    private void createDialogForm(String absoluteName, Stage parentStage){
-        try{
+    private void createDialogForm(Department obj, String absoluteName, Stage parentStage) {
+        try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
             Pane pane = loader.load();
+
+            DepartmentFormController controller = loader.getController();
+            controller.setDepartment(obj);
+            controller.setDepartmentService(new DepartmentService());
+            controller.subscribeDataChangeListeners(this);
+            controller.updateFormData();
 
             Stage dialogStage = new Stage();
             dialogStage.setTitle("Enter department data");
@@ -91,10 +100,15 @@ createDialogForm("/gui/DepartmentForm.fxml", parentStage);    }
             dialogStage.initModality(Modality.WINDOW_MODAL);
             dialogStage.showAndWait();
 
-        }catch(IOException e){
+        } catch (IOException e) {
             Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), Alert.AlertType.ERROR);
 
         }
 
+    }
+
+    @Override
+    public void onDataChanged() {
+        updateTableView();
     }
 }
