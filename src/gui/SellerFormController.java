@@ -8,15 +8,15 @@ import gui.util.Utils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import model.entities.Seller;
 import model.exceptions.ValidationException;
 import model.services.SellerService;
 
 import java.net.URL;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 public class SellerFormController implements Initializable {
@@ -34,7 +34,25 @@ public class SellerFormController implements Initializable {
     private TextField txtName;
 
     @FXML
+    private TextField txtEmail;
+
+    @FXML
+    private DatePicker dpBirthDate;
+
+    @FXML
+    private TextField txtBaseSalary;
+
+    @FXML
     private Label labelErrorName;
+
+    @FXML
+    private Label labelErrorEmail;
+
+    @FXML
+    private Label labelErrorBirthDate;
+
+    @FXML
+    private Label labelErrorBaseSalary;
 
     @FXML
     private Button btSave;
@@ -67,10 +85,9 @@ public class SellerFormController implements Initializable {
             service.saveOrUpdate(entity);
             notifyDataChangeListener();
             Utils.currentStage(event).close();
-        }catch (ValidationException e){
+        } catch (ValidationException e) {
             setErrorMessages(e.getErrors());
-        }
-        catch (DbException e) {
+        } catch (DbException e) {
             Alerts.showAlert("Error saving objects", null, e.getMessage(), Alert.AlertType.ERROR);
         }
     }
@@ -91,10 +108,10 @@ public class SellerFormController implements Initializable {
             exception.addError("name", "Field can't be empty");
         }
         obj.setName(txtName.getText());
-        if (exception.getErrors().size() > 0){
+        if (exception.getErrors().size() > 0) {
             throw exception;
         }
-            return obj;
+        return obj;
     }
 
     @FXML
@@ -111,6 +128,9 @@ public class SellerFormController implements Initializable {
     private void initializeNodes() {
         Constraints.setTextFieldInteger(txtId);
         Constraints.setTextFieldMaxLength(txtName, 20);
+        Constraints.setTextFieldDouble(txtBaseSalary);
+        Constraints.setTextFieldMaxLength(txtEmail, 60);
+        Utils.formatDatePicker(dpBirthDate, "dd/MM/yyyy");
     }
 
     public void updateFormData() {
@@ -119,12 +139,19 @@ public class SellerFormController implements Initializable {
         }
         txtId.setText(String.valueOf(entity.getId()));
         txtName.setText(entity.getName());
+        txtEmail.setText(entity.getEmail());
+        Locale.setDefault(Locale.US);
+        txtBaseSalary.setText(String.format("%.2f", entity.getBaseSalary()));
+
+        if(entity.getBirthDate() != null) {
+            dpBirthDate.setValue(LocalDate.ofInstant(entity.getBirthDate().toInstant(), ZoneId.systemDefault()));
+        }
     }
 
-    private void setErrorMessages(Map<String, String> errors){
+    private void setErrorMessages(Map<String, String> errors) {
         Set<String> fields = errors.keySet();
 
-        if(fields.contains("name")){
+        if (fields.contains("name")) {
             labelErrorName.setText(errors.get("name"));
         }
     }
